@@ -1,0 +1,227 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="style.css" />
+		<title>Shoot The Star</title>
+	</head>
+	<body>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+		<div id="background"></div>
+		<div id="title">Shooting Game!
+			<br/>
+			<img src="star.png">
+			<br/>
+			<button onClick="window.location.reload();" id="begin">Start Again</button>
+		</div>
+		<div id="hero"></div>
+
+		<img src="bomb.png" width="100" height="100" id="bomb">
+
+		<div id="score"></div>
+		<div id="gameover">GAME OVER <img src="sad.png"></div>
+		<div id="win">YOU WIN!!</div>
+		
+		<script>
+
+		var lastLoopRun = 0;
+		var score = 0;
+		var enemies = new Array();
+		var kill=10;
+		var speed = 0;
+
+
+		function createSprite(element, x, y, w, h) {
+		  var result = new Object();
+		  result.element = element;
+		  result.x = x;
+		  result.y = y;
+		  result.w = w;
+		  result.h = h;
+		  return result;
+		}
+
+
+
+		function ensureBounds(sprite, ignoreY) {
+		  if (sprite.x < 20) {
+			sprite.x = 20;
+		  }
+		  if (!ignoreY && sprite.y < 20) {
+			sprite.y = 20;
+		  }
+		  if (sprite.x + sprite.w > 880) {
+			sprite.x = 880 - sprite.w;
+		  }
+		  if (!ignoreY && sprite.y + sprite.h > 880) {
+			sprite.y = 880 - sprite.h;
+		  }
+		}
+
+		function setPosition(sprite) {
+		  var f = document.getElementById(sprite.element);
+		  f.style.left = sprite.x + 'px';
+		  f.style.top = sprite.y + 'px';
+		  
+		  //shot the star
+		  $(document).ready(function () {
+				  if((sprite.y>= 595) && ($("#"+sprite.element).css('display') != 'none')){
+				 
+					 $( "#"+sprite.element ).hide();
+					 gameover();
+					}else if (score>=1000){
+					win();
+					$( "#"+sprite.element ).hide();
+					}
+					
+			
+			$(this).mousemove(function (e) {
+			
+			});  
+
+			$(this).click(function (e) {
+				var x1 = e.pageX;
+				 var y1 = e.pageY;
+				
+				if ($('body').hasClass("clicked")) {
+				
+					
+					if (f.style.visibility == "hidden"){
+					$("#bomb").show();
+					$("#bomb").css({ top: y1, left: x1});
+					$("#bomb").fadeOut();
+					
+					}else{
+					if((sprite.x >= x1-30) && (sprite.x <= x1+30)){
+						if((sprite.y >= y1-30) && (sprite.y <= y1+30)){
+						 f.style.visibility = 'hidden';
+					var cd = $( "#"+sprite.element ).hide();
+					//$("#bomb").fadeIn();
+					score+=100;
+					kill-=1;
+								 
+					}
+					 
+					}
+					}
+					
+									 
+			} else {
+				 $('body').addClass("clicked");
+				if (f.style.visibility == "hidden"){
+				$("#bomb").show();
+					$("#bomb").css({ top: y1, left: x1 });
+					
+				}else{
+					if((sprite.x >= x1-30) && (sprite.x <= x1+30)){
+						if((sprite.y >= y1-30) && (sprite.y <= y1+30)){
+						
+							f.style.visibility = 'hidden';
+							$( "#"+sprite.element ).hide();
+							score+=100;
+						   kill-=1;
+							}
+						}
+					}
+				}
+									
+				 });  
+			});
+			
+		}
+
+		function gameover(){
+		 var element = document.getElementById('gameover');
+		  element.style.visibility = 'visible';
+
+		  $(document).ready(function () {
+		$(this).click(function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			return false;
+		});
+		  });
+		}
+
+		function win(){
+		 var el = document.getElementById('win');
+		  el.style.visibility = 'visible';
+		// console.log(element);
+		  $(document).ready(function () {
+		 $(this).click(function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			e.stopImmediatePropagation();
+			return false;
+		});
+		});
+		}
+
+		function showSprites() {
+		  
+		  for (var i = 0; i < enemies.length; i++) {
+			setPosition(enemies[i]);
+			
+		  }
+		  var scoreElement = document.getElementById('score');
+		  scoreElement.innerHTML = 'SCORE: ' + score;
+		  var killElement = document.getElementById('hero');
+		  killElement.innerHTML = 'SHOOT: ' + kill;
+		}
+
+		function updatePositions() {
+		  for (var i = 0; i < enemies.length; i++) {
+			enemies[i].y += 4;
+			enemies[i].x += getRandom(8) - 3;
+			ensureBounds(enemies[i], true);
+		  }
+		  //laser.y -= 12;
+		}
+
+		function addEnemy() {
+			var interval=30;
+			if(speed>1000){
+				interval=10;
+			}else if(speed>500){
+				interval = 20;
+			}
+			
+		  if (getRandom(interval) == 0) {
+			var elementName = 'enemy' + getRandom(10000);
+			var enemy = createSprite(elementName, getRandom(880), -40, 35, 35);
+			
+			var element = document.createElement('div');
+			element.id = enemy.element;
+			element.className = 'enemy'; 
+			document.children[0].appendChild(element);
+			
+			enemies[enemies.length] = enemy;
+		  }
+		}
+
+
+		function getRandom(maxSize) {
+		  return parseInt(Math.random() * maxSize);
+		}
+
+		function loop() {
+		  if (new Date().getTime() - lastLoopRun > 40) {
+			updatePositions();
+		  
+		   
+			addEnemy();
+		   
+			showSprites();
+			speed++;
+			
+			lastLoopRun = new Date().getTime();
+		  }
+		  setTimeout('loop();', 2);
+		}
+
+
+		loop();
+
+		</script>
+	</body>
+</html>
